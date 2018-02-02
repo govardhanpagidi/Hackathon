@@ -1,0 +1,197 @@
+﻿<!-- Balaji Polisetty E499376-->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .col2 {
+            width: 45%;
+            float: left;
+            margin: 2%;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h3>Hello Govardhan!</h3>
+    <div></div>
+    <div>
+        <!--<div class="col2">
+            <h2>Hey..Govardhan!</h2>
+            <table>
+                <tr>
+                    <td>
+                        Source: &nbsp;
+                    </td>
+                    <td style="width:80%">
+                        <input id="src" type="text" style="width:80%" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Destination: &nbsp;
+                    </td>
+                    <td style="width:80%">
+                        <input id="dest" type="text" style="width:80%" />
+                    </td>
+                </tr>
+                <tr></tr>
+                <tr></tr>
+                <tr>
+                    <td></td>
+                    <td style="width:80%">
+                        <input type="button" id="fndbtn" value="Make my ride" style="width:100%;font-size:large" />
+                    </td>
+
+                </tr>
+            </table>
+
+        </div>
+        <div class="col2">-->
+        <div id="map">
+
+
+        </div>
+        <!--</div>-->
+    </div>
+
+    <script>
+        var map;
+        var directionsDisplay;
+        var directionsService;
+        var map_marker;
+        var pointsArray;
+        var current
+        function initMap() {
+            var currentLoc = { lat: 17.418703, lng: 78.344177 };
+            //var hitechcity = { lat: 17.4474, lng: 78.3762 };
+            //var banjarahills = { lat: 17.387140, lng: 78.491684 };
+            map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 11,
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                tilt: 135,
+                center: currentLoc
+            });
+            map_marker = new google.maps.Marker({
+                position: currentLoc,
+                map: map,
+                title: "",
+                icon: 'Images/car.png'
+            });
+            
+            var rendererOptions = {
+                map: map,
+                suppressMarkers: true
+            }
+            directionsDisplay = new google.maps.DirectionsRenderer(rendererOptions);
+            directionsService = new google.maps.DirectionsService;
+        }
+        function calculateAndDisplayRoute(geo1, geo2) {
+             
+            directionsService.route({
+                origin: { lat: geo1 != null ? geo1.Latitude : -24.345, lng: geo1 != null ? geo1.Longitude : 124.46 },
+                // Haight.
+                destination: { lat: geo2 != null ? geo2.Latitude : -24.345, lng: geo2 != null ? geo2.Longitude : 124.46 },
+                // Ocean Beach.
+                // Note that Javascript allows us to access the constant
+                // using square brackets and a string value as its
+                // "property."
+                travelMode: google.maps.TravelMode.DRIVING
+            }, function (response, status) {
+                if (status == google.maps.DirectionsStatus.OK) {
+                    directionsDisplay.setDirections(response);
+                    pointsArray = response.routes[0].overview_path;
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            });
+
+            function redraw(pos) {
+                var lat = geo1 != null ? geo1.Latitude + pos : -24.345;
+                var long = geo1 != null ? geo1.Longitude + pos : 24.46;
+                map.setCenter(pointsArray[pos])
+                map_marker.setPosition(pointsArray[pos]);
+            }
+            var distance = 0;
+            var intervalId = setInterval(function () {
+                redraw(distance);
+                distance = distance >= pointsArray.length ? clearInterval(intervalId) : distance + 1;
+            }, 2000);
+            map.setZoom(20);
+        }
+
+
+        // calculateAndDisplayRoute();
+
+    </script>
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBPxmns5FbR3OQn1BlTiF-k_dXynCSM2j4&callback=initMap">
+    </script>
+    <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script>
+        var isInTrip= false;
+        $(document).ready(function () {
+
+        });
+
+        
+
+        function getlatLongs() {
+
+            return { latitude: "18.1232", longitude: "77.28374" }
+        }
+        setInterval(function () {
+            //If trips found
+            if (isInTrip == false) {
+                //Make a call to 
+                var isTripsAvailable = false;
+                var trip = getTrips();
+            
+                
+            }
+        }, 9000);
+
+        function getTrips(){
+                $.ajax({
+                    url: 'http://bronze-dev2.gdc/~rmd25/rearch/index.php/web_services/ride_share_api/getDriverTrips?driverid=1',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        alert('you have found the booking!')
+                        if (data != null && data !== 'undefined') {
+                            if (data != null) {
+                                isInTrip = true;
+                                slat = parseFloat(data.source.latitude)
+                                slon = parseFloat(data.source.longitude)
+
+                                dlat = parseFloat(data.destination.latitude)
+
+                                dlon = parseFloat(data.destination.long)
+
+                                var geo1 = { Latitude: slat, Longitude: slon };
+                                var geo2 = { Latitude: dlat, Longitude:dlon };
+
+                                //geo1 = { Latitude: "18.1232", Longitude: "77.28374" };
+                                //geo2 = { Latitude: "17.1232", Longitude: "77.28374" }
+                                calculateAndDisplayRoute(geo1, geo2);
+                                map.setTilt(45);
+
+                            }
+                        }
+                        
+                    },
+                    error: function (data) {
+                        return null;
+                    }
+                });
+        }
+
+    </script>
+
+    <!--<input id="trackRide" type="button" value="TrackMyRide" onclick="calculateAndDisplayRoute()" />-->
+</body>
+</html>

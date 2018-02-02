@@ -1,0 +1,216 @@
+﻿<!-- Balaji Polisetty E499376 and Gunjan Joshi (E471028) -->
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>
+RideShare App
+</title>
+	<!-- Integrated with Honeywell DLS -->
+	<link rel="stylesheet" href="http://bronze-dev2.gdc/~rmd25/Honeywell_DLS/css/hon-dls.min.css" />
+    <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <style>
+        .col2 {
+            width: 45%;
+            float: left;
+            margin: 2%;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+</style>
+</head>
+
+<body>
+    
+    <div style="margin:10px;">
+	<h2 style="text-transform:none;">RideShare App</h2>
+        <div class="col-md-5">
+            <h3>Book a ride choosing nearest cabs..</h3>
+            <table class="table">
+                <tr>
+                    <td>
+                       <label class="control-label" for="src"> Source: &nbsp;</label>
+                    </td>
+                    <td style="width:80%">
+                        <input id="src" type="text" style="width:80%" class="form-control" value="17.418703 - 78.344177 " />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                       <label class="control-label" for="dest"> Destination: &nbsp;</label>
+                    </td>
+                    <td style="width:80%">
+                        <input id="dest" type="text" style="width:80%" class="form-control" value="17.4474 - 78.3762" />
+                    </td>
+                </tr>
+                <tr></tr>
+                <tr></tr>
+                <tr>
+                    <td></td>
+                    <td style="width:80%">
+                        <input type="button" id="fndbtn" value="Book my ride" style="width:100%;font-size:large" onclick="calculateAndDisplayRoute()" class="btn btn-secondary"/>
+                    </td>
+
+                </tr>
+            </table>
+
+        </div>
+        <div class="col2">
+            <div id="map">
+
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var map;
+        var directionsDisplay;
+        var directionsService;
+        var map_marker;
+        var pointsArray;
+        function initMap() {
+
+          
+            var uluru = { lat: 17.3850, lng: 78.4867 };
+        
+         map = new google.maps.Map(document.getElementById('map'), {
+            zoom:11,
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            tilt: 135,
+          center: uluru
+        });
+        map_marker = new google.maps.Marker({
+          position: uluru,
+          map: map,
+          title: "",
+          icon: 'Images/Car-Top-Red-icon.png'
+        });
+        //var marker2 = new google.maps.Marker({
+        //    position: hitechcity,
+        //    map: map,
+        //    title: "",
+        //    icon: 'Images/20350-200.png'
+        //});
+        //var marker3 = new google.maps.Marker({
+        //    position: banjarahills,
+        //    map: map,
+        //    title: "",
+        //    icon: 'Images/20350-200.png'
+            //});
+
+        $.ajax({
+            url: 'http://bronze-dev2.gdc/~rmd25/rearch/index.php/web_services/ride_share_api/getNearestDrivers',
+            type: 'GET',
+            dataType: 'json',
+            success: function (latlongs) {
+               
+                $.each(latlongs, function (index, val) {
+                   // alert(val.driver_name); //Do what you want to the Name
+                    var marker = new google.maps.Marker({
+                        position: { lat: parseFloat(val.latitude), lng: parseFloat(val.longitude) },
+                        map: map,
+                        title: "",
+                        icon: 'Images/car3.jpg'
+                    });
+                });
+            },
+            error: function (data) {
+               // alert(data);
+            }
+        });
+
+        var rendererOptions = {
+            map: map,
+            suppressMarkers: true
+        }
+        directionsDisplay = new google.maps.DirectionsRenderer(rendererOptions);
+        directionsService = new google.maps.DirectionsService;      
+      }
+           function calculateAndDisplayRoute() {
+          var geo1 = { Latitude: 17.418703, Longitude : 78.344177 };
+          var geo2 = { Latitude: 17.4474, Longitude: 78.3762 };
+          $.ajax({
+              url: 'http://bronze-dev2.gdc/~rmd25/rearch/index.php/web_services/ride_share_api/bookCab',
+              type: 'GET',
+              data: { customer_id: "asd", latitude: 17.418703, longitude: 78.344177 },
+              dataType: 'json',
+             success: function (data) {
+              if (data != null && data !== 'undefined') {
+                  return data;
+              }
+              else {
+                  return null;
+              }
+          },
+          error: function (data) {
+              return null;
+          }
+      }); 
+
+          directionsService.route({
+              origin: { lat: geo1 != null ? geo1.Latitude : -24.345, lng: geo1 != null ? geo1.Longitude : 124.46 },
+              // Haight.
+              destination: { lat: geo2 != null ? geo2.Latitude : -24.345, lng: geo2 != null ? geo2.Longitude : 124.46 },
+              // Ocean Beach.
+              // Note that Javascript allows us to access the constant
+              // using square brackets and a string value as its
+              // "property."
+              travelMode: google.maps.TravelMode.DRIVING
+          }, function (response, status) {
+              if (status == google.maps.DirectionsStatus.OK) {
+                  directionsDisplay.setDirections(response);
+                  pointsArray = response.routes[0].overview_path;
+              } else {
+                  window.alert('Directions request failed due to ' + status);
+              }
+          });
+
+          function redraw(pos) {
+              var lat = geo1 != null ? geo1.Latitude + pos : -24.345;
+              var long = geo1 != null ? geo1.Longitude + pos : 24.46;
+              map.setCenter(pointsArray[pos])
+              map_marker.setPosition(pointsArray[pos]);
+          }
+          var distance = 0;
+          var intervalId = setInterval(function () {
+              redraw(distance);
+              distance = distance >= pointsArray.length ? clearInterval(intervalId) : distance + 1;
+          }, 2000);
+          map.setZoom(20);
+           }
+           
+     // calculateAndDisplayRoute();
+      //map.setTilt(45);
+      
+    </script>
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBPxmns5FbR3OQn1BlTiF-k_dXynCSM2j4&callback=initMap">
+    </script>
+    <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script>
+        $(document).ready(function () {
+          
+        });
+
+        $('#fndbtn').click(function () {
+          //  alert('called..')
+            var latlongs = getlatLongs();
+           // alert("latlongs" + latlongs)
+
+           
+        });
+
+        function getlatLongs() {
+
+            return { latitude: "18.1232", longitude: "77.28374" }
+        }
+
+    </script>
+
+   
+</body>
+</html>

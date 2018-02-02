@@ -1,0 +1,15 @@
+Assign Cab Method:
+For each cab request that comes in,
+{
+For each of the nearest available cabs (cabs with seat availability)
+{
+-> Draw paths from First Pick up to Last Drop of the current share
+-> Check if the requested source and destination falls under any of these paths,
+	If yes then assign the current cab.
+}
+-> If none of the on going shares fulfill the request then assign a new cab from the nearest available cabs
+}
+
+//Tree Structures/Graphs will solve the problem in efficient manner. and Dynamic Programming methods will be applied.
+
+//To find out the nearest cabs, we can consider using Postgress SQL. This method would be efficient as it uses GeoSpatial points. We will be directly able to query from the database of available drivers based on the requestors's latitude and longitude.

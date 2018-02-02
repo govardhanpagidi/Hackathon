@@ -1,0 +1,35 @@
+		
+		void AddShare(Node node)
+        {
+            Node neighbour;
+            ReachableNode rn;
+            foreach (Route route in node.Routes)
+            {
+                neighbour = GetNeighbour(node, route);
+                //make sure we don't add the node we came from
+                if (node.RouteCameFrom == null || neighbour != GetNeighbour(node, node.RouteCameFrom))
+                {
+                    //make sure we don't add a node already in the cloud
+                    if (!_cloud.Contains(neighbour))
+                    {
+                        //if the node is already reachable
+                        if (_reachableNodes.HasNode(neighbour))
+                        {
+                            //if the distance from this Route is shorter than the current total distance
+                            //amend the reachable node using the current route
+                            if (node.TotalDistance + route.Length < neighbour.TotalDistance)
+                            {
+                                rn = _reachableNodes.GetReachableNodeFromNode(neighbour);
+                                rn.route = route;
+                            }
+                        }
+                        else
+                        {
+                            rn = new ReachableNode(neighbour, route);
+                            _reachableNodes.AddReachableNode(rn);
+                        }
+                    }
+                }
+            }
+
+        }
